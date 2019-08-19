@@ -1,6 +1,7 @@
 import { SheetsManager } from "./SheetsManager";
 import { AgentManager } from "./AgentManager";
 import { Agent } from "../BusinessObjects/Agent";
+import { EnquiryLog } from "../BusinessObjects/EnquiryLog";
 
 export class RoundRobinManager {
 
@@ -8,7 +9,7 @@ export class RoundRobinManager {
     private _agentsSheetName: string = "Agents";
     private _rangeAgents: string = "A2:E";
     private _enquiryLogSheetName: string = "EnquiryLog";
-    private _rangeEnquiryLog: string = "A:E";
+    private _rangeEnquiryLog: string = "A:G";
     private _zipEnquiry: string;
 
     constructor(sheetsManager: SheetsManager, zipEnquiry: string) {
@@ -24,31 +25,41 @@ export class RoundRobinManager {
         return zipAgents;
     }
 
-    private getEnquiryZipAgents(): Array<Agent> {
+    private getEnquiryZipLog = (): { cycleNumber: number, enquiries: Array<EnquiryLog> } => {
         this._sheetsManager.ActiveSheet = this._enquiryLogSheetName;
-        const enquiryLogs = this._sheetsManager.getRangeValues(this._rangeEnquiryLog);
-        const enquiryAgents = AgentManager.getAgentsFromData(enquiryLogs);
-        const enquiryZipAgents = AgentManager.getAgentsByZipCode(enquiryAgents, this._zipEnquiry);
-        return enquiryZipAgents;
+        const data = this._sheetsManager.getRangeValues(this._rangeEnquiryLog);
+        const enquiryLogs = AgentManager.getEnquiryLogsFromData(data);
+        return AgentManager.getMaxCycleEnquiryLogsByZipCode(enquiryLogs, this._zipEnquiry);
     }
 
 
-    public addEnquiryLog(agent: Agent): void {
+    public addEnquiryLog(agent: Agent, cycleNumber: number): void {
         this._sheetsManager.ActiveSheet = this._enquiryLogSheetName;
         let agentArray = agent.toArray();
         agentArray.pop();
         agentArray.push(this._zipEnquiry);
+        agentArray.push(cycleNumber);
         agentArray.push(new Date().toLocaleString());
         this._sheetsManager.appendStringRow(agentArray);
     }
 
-    public getRoundRobinAgent(): Agent {
+    public getRoundRobinAgent = (): { cycleNumber: number, selectedAgent: Agent } => {
         let zipAgents = this.getZipAgents();
-        let enquiryZipAgents = this.getEnquiryZipAgents();
-        const filteredAgents = AgentManager.filterAgents(zipAgents, enquiryZipAgents);
+        if (zipAgents.length === 0)
+            return null;
+        let enquiryZipAgents = this.getEnquiryZipLog();
+        let cycleNumber = enquiryZipAgents.cycleNumber;
+
+        let filteredAgents = AgentManager.filterAgents(zipAgents, enquiryZipAgents.enquiries);
+        if (filteredAgents.length === 0) {
+            filteredAgents = zipAgents;
+            cycleNumber = cycleNumber + 1;
+        }
+
+
         if (filteredAgents.length === 0)
             return null;
         var selectedAgent = filteredAgents[Math.floor(Math.random() * filteredAgents.length)];
-        return selectedAgent;
+        return { cycleNumber: cycleNumber, selectedAgent: selectedAgent };
     }
 }   
