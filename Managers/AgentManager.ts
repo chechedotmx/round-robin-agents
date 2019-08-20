@@ -41,10 +41,11 @@ export class AgentManager {
         let enquiryArray: Array<EnquiryLog> = new Array<EnquiryLog>();
         let maxCycleNumber = 1;
         for (const enquiry of enquiries) {
-            if (enquiry.cycleNumber > maxCycleNumber)
-                maxCycleNumber = enquiry.cycleNumber;
-            if (enquiry.zipCode === zipCode)
+            if (enquiry.zipCode === zipCode) {
                 enquiryArray.push(enquiry);
+                if (enquiry.cycleNumber > maxCycleNumber)
+                    maxCycleNumber = enquiry.cycleNumber;
+            }
         }
         if (maxCycleNumber !== 1) {
             enquiryArray = AgentManager.filterCycleEnquiries(enquiryArray, maxCycleNumber);
