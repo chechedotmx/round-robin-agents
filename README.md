@@ -18,5 +18,6 @@ This step is to gain access to your account
 ```
 {"scriptId":"xxxxxx"}
 ```
-6. On a terminal use "clasp push"
-7. To deploy use the instructions [here](https://developers.google.com/apps-script/guides/web)
+6. Change on index.ts the google sheet id for your sheet id.
+7. On a terminal use "clasp push"
+8. To deploy use the instructions [here](https://developers.google.com/apps-script/guides/web)
