@@ -41,4 +41,11 @@ export class SheetsManager {
         return headers.indexOf(headerTitle);
     }
 
+    public updateValue(sheetRow: number, columnIndex: number, value: string) {
+        if (this._activeSheet === undefined || this._activeSheet === null)
+            throw new Error('There is no active sheet');
+
+        this._activeSheet.getRange(sheetRow, columnIndex).setValue(value);
+    }
+
 }
