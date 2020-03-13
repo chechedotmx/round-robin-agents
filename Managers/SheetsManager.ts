@@ -1,6 +1,7 @@
 export class SheetsManager {
     private _spreadSheet: GoogleAppsScript.Spreadsheet.Spreadsheet;
     private _activeSheet: GoogleAppsScript.Spreadsheet.Sheet;
+    private _data: any[][];
 
     constructor(sheetId: string) {
         this._spreadSheet = SpreadsheetApp.openById(sheetId);
@@ -15,7 +16,9 @@ export class SheetsManager {
     public getRangeValues(range: string): any[][] {
         if (this._activeSheet === undefined || this._activeSheet === null)
             throw new Error('There is no active sheet');
-        return this._activeSheet.getRange(range).getValues();
+
+        this._data = this._activeSheet.getRange(range).getValues();
+        return this._data;
     }
 
     public appendStringRow(rowContents: any[]): void {
@@ -28,6 +31,14 @@ export class SheetsManager {
         }
         rng.setNumberFormats([arrayFormats]);
         rng.setValues([rowContents]);
+    }
+
+    public getHeaderIndex(headerTitle: string) {
+        if (this._data === undefined || this._data === null)
+            throw new Error('There is no active data processed');
+        let rangeValues = this._data;
+        let headers = rangeValues[0];
+        return headers.indexOf(headerTitle);
     }
 
 }
